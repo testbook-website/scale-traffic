@@ -1,17 +1,10 @@
 /**
  * Google Apps Script for SEO Ideas Dashboard Integration
  *
- * HOW TO SET UP (Takes 1 minute):
- * 1. Open your Google Sheet: https://docs.google.com/spreadsheets/d/1U85yUu5J21RHuxNq-Sc38_zklRSWiGkLitB8w6SChIg/edit
- * 2. In the top menu, click: Extensions > Apps Script
- * 3. Delete any existing code and PASTE this entire file content.
- * 4. Click "Deploy" (blue button at top right) > "New deployment".
- * 5. Click the gear icon (Select type) > Choose "Web app".
- * 6. Set Description: "SEO Ideas API"
- * 7. Set "Execute as": "Me"
- * 8. Set "Who has access": "Anyone"  <-- IMPORTANT
- * 9. Click "Deploy" and authorize access.
- * 10. Copy the "Web app URL" and paste it into app.js (GOOGLE_SHEET_WEBAPP_URL).
+ * HOW TO UPDATE IN APPS SCRIPT:
+ * 1. Open your Google Sheet > Extensions > Apps Script
+ * 2. Replace the code with this updated version
+ * 3. Click "Deploy" > "Manage deployments" > Edit (pencil icon) > Version: "New version" > Click "Deploy"
  */
 
 function setupHeaders() {
@@ -48,7 +41,6 @@ function doGet(e) {
         .setMimeType(ContentService.MimeType.JSON);
     }
 
-    const headers = data[0];
     const rows = data.slice(1);
     const ideas = rows.map((row, index) => {
       const impact = Number(row[7]) || 1;
@@ -56,21 +48,34 @@ function doGet(e) {
       const ease = Number(row[9]) || 1;
       const totalScore = ((impact + confidence + ease) / 3).toFixed(1);
 
+      // Safe date formatting that never throws RangeError
+      let dateStr = "";
+      try {
+        if (row[1] instanceof Date) {
+          dateStr = row[1].toISOString();
+        } else if (row[1]) {
+          dateStr = String(row[1]);
+        } else {
+          dateStr = new Date().toISOString();
+        }
+      } catch (err) {
+        dateStr = String(row[1] || "");
+      }
+
       return {
-        rowIndex: index + 2, // 1-indexed for header
-        id: row[0] || "idea-" + (index + 1),
-        createdAt: row[1] ? new Date(row[1]).toISOString() : new Date().toISOString(),
-        name: row[2] || "",
-        email: row[3] || "",
-        title: row[4] || "",
-        category: row[5] || "Uplifting Existing Traffic",
-        description: row[6] || "",
+        id: String(row[0] || ("idea-" + (index + 1))),
+        createdAt: dateStr,
+        name: String(row[2] || ""),
+        email: String(row[3] || ""),
+        title: String(row[4] || ""),
+        category: String(row[5] || "Uplifting Existing Traffic"),
+        description: String(row[6] || ""),
         impact: impact,
         confidence: confidence,
         ease: ease,
         totalIceScore: totalScore,
-        status: row[11] || "Route for discussion",
-        adminNotes: row[12] || ""
+        status: String(row[11] || "Route for discussion"),
+        adminNotes: String(row[12] || "")
       };
     });
 
@@ -93,13 +98,13 @@ function doPost(e) {
     const action = body.action || "submit";
 
     if (action === "updateStatus") {
-      const targetId = body.id;
+      const targetId = String(body.id);
       const newStatus = body.status;
       const adminNotes = body.adminNotes;
       const data = sheet.getDataRange().getValues();
 
       for (let i = 1; i < data.length; i++) {
-        if (String(data[i][0]) === String(targetId)) {
+        if (String(data[i][0]) === targetId) {
           if (newStatus) sheet.getRange(i + 1, 12).setValue(newStatus);
           if (adminNotes !== undefined) sheet.getRange(i + 1, 13).setValue(adminNotes);
           break;
@@ -111,19 +116,19 @@ function doPost(e) {
     }
 
     // Default: Submit New Idea
-    const id = body.id || "idea-" + new Date().getTime();
+    const id = String(body.id || ("idea-" + new Date().getTime()));
     const timestamp = new Date().toLocaleString();
-    const name = body.name || "";
-    const email = body.email || "";
-    const title = body.title || "";
-    const category = body.category || "Uplifting Existing Traffic";
-    const description = body.description || "";
+    const name = String(body.name || "");
+    const email = String(body.email || "");
+    const title = String(body.title || "");
+    const category = String(body.category || "Uplifting Existing Traffic");
+    const description = String(body.description || "");
     const impact = Number(body.impact) || 1;
     const confidence = Number(body.confidence) || 1;
     const ease = Number(body.ease) || 1;
     const totalScore = ((impact + confidence + ease) / 3).toFixed(1);
-    const status = body.status || "Route for discussion";
-    const adminNotes = body.adminNotes || "";
+    const status = String(body.status || "Route for discussion");
+    const adminNotes = String(body.adminNotes || "");
 
     sheet.appendRow([
       id,

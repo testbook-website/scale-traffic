@@ -1,5 +1,5 @@
 /**
- * SEO Ideas Hub - Application Logic with Google Sheet Sync
+ * SEO Ideas Hub - Application Logic with Google Sheet Live Sync
  * Passcodes:
  *   Team Entry: 7730 (Submit Idea only)
  *   Admin Portal: 8967 (View all ideas, ICE scores, status)
@@ -14,55 +14,10 @@ const PASSCODES = {
 
 // Google Apps Script Web App Deployment URL
 const GOOGLE_SHEET_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbya3Ut7mQggtzmkGHDWbkgffyxuwLoKIyPZ-WbWCHH4YsckueBYTWzRpDKEaQYsA9jdBQ/exec';
+const GOOGLE_SHEET_ID = '1U85yUu5J21RHuxNq-Sc38_zklRSWiGkLitB8w6SChIg';
 
-const STORAGE_KEY = 'seo_hub_ideas_v3';
+const STORAGE_KEY = 'seo_hub_ideas_v4';
 const AUTH_KEY = 'seo_hub_auth_role';
-
-// Initial Starter Data
-const INITIAL_IDEAS = [
-  {
-    id: 'idea-101',
-    name: 'Sumit Gupta',
-    email: 'sumit@growthseo.com',
-    title: 'Programmatic Landing Pages for Competitor Comparison Queries',
-    category: 'New Traffic/New Idea',
-    description: 'Build automated, high-quality comparison templates leveraging structured data and feature matrices to capture bottom-of-funnel search volume.',
-    impact: 9,
-    confidence: 8,
-    ease: 7,
-    status: 'Go ahead',
-    createdAt: '2026-09-28T10:30:00Z',
-    adminNotes: 'High conversion intent.'
-  },
-  {
-    id: 'idea-102',
-    name: 'Priya Sharma',
-    email: 'priya.s@company.in',
-    title: 'Core Web Vitals & Image Optimization across Top 50 High-Traffic URLs',
-    category: 'Uplifting Existing Traffic',
-    description: 'Convert all hero banners and blog images to modern AVIF/WebP with explicit width/height to bring LCP below 2.0s and lift rankings.',
-    impact: 8,
-    confidence: 9,
-    ease: 8,
-    status: 'Selected',
-    createdAt: '2026-09-28T14:15:00Z',
-    adminNotes: 'Dev team scheduled.'
-  },
-  {
-    id: 'idea-103',
-    name: 'Arun Verma',
-    email: 'arun@searchmarketing.io',
-    title: 'Interactive Free Tool & Calculator Widget for Backlink & Referral Traffic',
-    category: 'New Medium to Get the Users',
-    description: 'Launch an interactive free tool widget to attract direct tool users, social shares, and authoritative media backlinks.',
-    impact: 9,
-    confidence: 7,
-    ease: 5,
-    status: 'Route for discussion',
-    createdAt: '2026-09-29T08:00:00Z',
-    adminNotes: 'Estimating widget development effort.'
-  }
-];
 
 // State
 let currentRole = null;
@@ -89,12 +44,10 @@ function loadIdeas() {
     try {
       ideas = JSON.parse(raw);
     } catch (e) {
-      ideas = [...INITIAL_IDEAS];
-      saveIdeas();
+      ideas = [];
     }
   } else {
-    ideas = [...INITIAL_IDEAS];
-    saveIdeas();
+    ideas = [];
   }
 }
 
@@ -160,7 +113,7 @@ function unlockPortal(role) {
     if (discreetAdminBtn) discreetAdminBtn.style.display = 'none';
     if (headerSubtitle) headerSubtitle.innerText = 'Admin Evaluation & Decision Console';
     switchView('admin');
-    fetchLiveIdeasFromSheet(false); // auto-sync from sheet silently on admin load
+    fetchLiveIdeasFromSheet(false); // auto-sync from sheet on admin load
   } else {
     if (discreetAdminBtn) discreetAdminBtn.style.display = 'inline-flex';
     if (headerSubtitle) headerSubtitle.innerText = 'Traffic & Growth Initiatives';
@@ -342,21 +295,21 @@ function handleIdeaSubmit(event) {
   ideas.unshift(newIdea);
   saveIdeas();
 
-  // 2. Sync to Google Sheet asynchronously if WebApp URL is configured
+  // 2. Sync to Google Sheet asynchronously
   if (GOOGLE_SHEET_WEBAPP_URL) {
     fetch(GOOGLE_SHEET_WEBAPP_URL, {
       method: 'POST',
       mode: 'no-cors',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(newIdea)
-    }).catch(err => console.log('Sheet sync queued in background', err));
+    }).catch(err => console.log('Sheet sync queued', err));
   }
 
   // 3. Show success card
   document.getElementById('submissionFormWrap').style.display = 'none';
   document.getElementById('submitSuccessCard').style.display = 'block';
 
-  showToast('🎉 Idea saved & sent to Admin!', 'success');
+  showToast('🎉 Idea saved to Google Sheet!', 'success');
 }
 
 function resetFormForNewIdea() {
@@ -384,58 +337,81 @@ function resetFormForNewIdea() {
   if (formWrap) formWrap.style.display = 'grid';
 }
 
-// Fetch live ideas from Google Sheet Web App
+// Fetch live ideas from Google Sheet Web App (with GViz fallback)
 async function fetchLiveIdeasFromSheet(showFeedback = true) {
-  if (!GOOGLE_SHEET_WEBAPP_URL) {
-    if (showFeedback) {
-      promptForWebAppUrl();
-    }
-    return;
-  }
-
   const syncBtn = document.getElementById('syncSheetBtn');
   if (syncBtn) {
     syncBtn.innerText = 'Syncing...';
     syncBtn.disabled = true;
   }
 
-  try {
-    const res = await fetch(GOOGLE_SHEET_WEBAPP_URL);
-    const json = await res.json();
+  let fetchedIdeas = null;
 
+  // 1. Primary method: Apps Script Web App GET
+  try {
+    const res = await fetch(GOOGLE_SHEET_WEBAPP_URL + '?t=' + Date.now());
+    const json = await res.json();
     if (json && json.status === 'success' && Array.isArray(json.ideas)) {
-      if (json.ideas.length > 0) {
-        ideas = json.ideas;
-        saveIdeas();
-      }
-      if (showFeedback) showToast(`Synced ${ideas.length} ideas from Google Sheet!`, 'success');
+      fetchedIdeas = json.ideas;
     }
   } catch (err) {
-    console.warn('Could not fetch from Google Sheet Web App:', err);
-    if (showFeedback) {
-      showToast('Loaded ideas from saved cache.', 'info');
-    }
-  } finally {
-    if (syncBtn) {
-      syncBtn.innerText = 'Sync from Google Sheet';
-      syncBtn.disabled = false;
-    }
-    renderAdminPortal();
+    console.warn('Apps script GET fetch failed, trying GViz fallback...', err);
   }
-}
 
-function promptForWebAppUrl() {
-  const url = prompt(
-    'To sync live with your Google Sheet:\n1. Paste your deployed Google Apps Script Web App URL below:\n\n(See google-apps-script.js file in repo for the 1-minute setup guide)',
-    GOOGLE_SHEET_WEBAPP_URL
-  );
+  // 2. Fallback method: Google Visualization Public Endpoint
+  if (!fetchedIdeas) {
+    try {
+      const gvizUrl = `https://docs.google.com/spreadsheets/d/${GOOGLE_SHEET_ID}/gviz/tq?tqx=out:json&t=${Date.now()}`;
+      const res = await fetch(gvizUrl);
+      const text = await res.text();
+      const jsonStr = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
+      const data = JSON.parse(jsonStr);
 
-  if (url && url.trim().startsWith('http')) {
-    GOOGLE_SHEET_WEBAPP_URL = url.trim();
-    localStorage.setItem('seo_hub_webapp_url', GOOGLE_SHEET_WEBAPP_URL);
-    showToast('Google Sheet Web App URL connected!', 'success');
-    fetchLiveIdeasFromSheet(true);
+      if (data && data.table && Array.isArray(data.table.rows)) {
+        fetchedIdeas = data.table.rows.map((row, idx) => {
+          const c = row.c || [];
+          const getVal = (col) => (c[col] ? (c[col].v !== null && c[col].v !== undefined ? c[col].v : '') : '');
+          
+          const impact = Number(getVal(7)) || 1;
+          const confidence = Number(getVal(8)) || 1;
+          const ease = Number(getVal(9)) || 1;
+          const totalScore = ((impact + confidence + ease) / 3).toFixed(1);
+
+          return {
+            id: String(getVal(0) || ('idea-' + (idx + 1))),
+            createdAt: String(getVal(1) || new Date().toISOString()),
+            name: String(getVal(2) || ''),
+            email: String(getVal(3) || ''),
+            title: String(getVal(4) || ''),
+            category: String(getVal(5) || 'Uplifting Existing Traffic'),
+            description: String(getVal(6) || ''),
+            impact: impact,
+            confidence: confidence,
+            ease: ease,
+            totalIceScore: totalScore,
+            status: String(getVal(11) || 'Route for discussion'),
+            adminNotes: String(getVal(12) || '')
+          };
+        }).filter(item => item.title || item.name);
+      }
+    } catch (gvizErr) {
+      console.warn('GViz fallback failed too:', gvizErr);
+    }
   }
+
+  if (fetchedIdeas && fetchedIdeas.length > 0) {
+    ideas = fetchedIdeas;
+    saveIdeas();
+    if (showFeedback) showToast(`Synced ${ideas.length} ideas from Google Sheet!`, 'success');
+  } else if (showFeedback) {
+    showToast(`Synced! ${ideas.length} ideas in list.`, 'info');
+  }
+
+  if (syncBtn) {
+    syncBtn.innerText = 'Sync from Google Sheet';
+    syncBtn.disabled = false;
+  }
+  renderAdminPortal();
 }
 
 // Calculate Total ICE Score: (I + C + E) / 3
@@ -537,7 +513,7 @@ function filterAdminIdeas() {
       case 'ice-asc':
         return scoreA - scoreB;
       case 'newest':
-        return new Date(b.createdAt) - new Date(a.createdAt);
+        return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
       case 'impact-desc':
         return b.impact - a.impact;
       case 'confidence-desc':
@@ -637,7 +613,6 @@ function updateIdeaStatus(id, newStatus, selectElement) {
     saveIdeas();
     selectElement.className = `status-dropdown ${getStatusDropdownClass(newStatus)}`;
 
-    // Sync status change to Google Sheet
     if (GOOGLE_SHEET_WEBAPP_URL) {
       fetch(GOOGLE_SHEET_WEBAPP_URL, {
         method: 'POST',
@@ -647,7 +622,7 @@ function updateIdeaStatus(id, newStatus, selectElement) {
       }).catch(e => console.log('Sheet status update sent', e));
     }
 
-    showToast(`Status updated to "${newStatus}"`, 'success');
+    showToast(`Status updated to "${newStatus}" & saved to Sheet!`, 'success');
   }
 }
 
@@ -683,7 +658,7 @@ function openDetailModal(id) {
     <h2 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 0.35rem; color: var(--text-main);">${escapeHtml(idea.title)}</h2>
     
     <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">
-      <span>By ${escapeHtml(idea.name)} (${escapeHtml(idea.email)}) • ${new Date(idea.createdAt).toLocaleDateString()}</span>
+      <span>By ${escapeHtml(idea.name)} (${escapeHtml(idea.email)}) • ${idea.createdAt || 'Recent'}</span>
     </div>
 
     <div style="background: var(--bg-subtle); padding: 0.85rem; border-radius: var(--radius-md); margin-bottom: 1rem;">
@@ -753,7 +728,6 @@ function saveDetailModalChanges(id) {
     if (notes) idea.adminNotes = notes.value.trim();
     saveIdeas();
 
-    // Sync updated notes & status to Google Sheet
     if (GOOGLE_SHEET_WEBAPP_URL) {
       fetch(GOOGLE_SHEET_WEBAPP_URL, {
         method: 'POST',
@@ -789,7 +763,7 @@ function exportDataToCSV() {
     calculateIceScore(i),
     `"${i.status}"`,
     `"${(i.adminNotes || '').replace(/"/g, '""')}"`,
-    `"${new Date(i.createdAt).toLocaleString()}"`
+    `"${i.createdAt || ''}"`
   ]);
 
   const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
