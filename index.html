@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SEO Idea Hub | Team & Admin Dashboard</title>
+  <meta name="description" content="Collaborative SEO Idea Submission and ICE Prioritization Dashboard for growth and search teams.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Top Navigation -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <div class="brand-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
+            <polyline points="16 7 22 7 22 13"></polyline>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-title">SEO Ideas Hub</span>
+          <span class="brand-subtitle">ICE Prioritization Dashboard</span>
+        </div>
+      </div>
+
+      <!-- Role & Portal Tabs -->
+      <nav class="portal-nav" id="portalNav" style="display: none;">
+        <button class="nav-tab active" id="tabTeam" onclick="switchView('team')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20h9"></path>
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+          </svg>
+          Submit Idea
+        </button>
+        <button class="nav-tab" id="tabFeed" onclick="switchView('feed')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          Team Feed
+        </button>
+        <button class="nav-tab" id="tabAdmin" onclick="openAdminGate()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          Admin Portal
+          <span class="admin-badge" id="adminBadge">Locked</span>
+        </button>
+      </nav>
+
+      <div class="header-actions">
+        <button class="btn btn-outline btn-sm" id="logoutBtn" onclick="logout()" style="display: none;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+          </svg>
+          Exit
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-content">
+    
+    <!-- 1. AUTH GATE / LOGIN SCREEN -->
+    <section id="authSection" class="view-section active">
+      <div class="auth-card">
+        <div class="auth-header">
+          <div class="auth-badge">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            Secure Access
+          </div>
+          <h1>Welcome to SEO Ideas Hub</h1>
+          <p class="auth-desc">Select your portal and enter your access code to continue.</p>
+        </div>
+
+        <div class="portal-selector">
+          <button type="button" class="portal-choice active" id="choiceTeam" onclick="selectLoginRole('team')">
+            <div class="choice-icon team-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+            </div>
+            <div class="choice-text">
+              <strong>Team Portal</strong>
+              <span>Submit & share SEO growth ideas</span>
+            </div>
+          </button>
+
+          <button type="button" class="portal-choice" id="choiceAdmin" onclick="selectLoginRole('admin')">
+            <div class="choice-icon admin-icon">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              </svg>
+            </div>
+            <div class="choice-text">
+              <strong>Admin Portal</strong>
+              <span>ICE review, scoring & stage management</span>
+            </div>
+          </button>
+        </div>
+
+        <form id="loginForm" onsubmit="handleLogin(event)" class="login-form">
+          <div class="form-group">
+            <label for="passcodeInput" id="loginLabel">Dashboard Access Password</label>
+            <div class="input-with-icon">
+              <input type="password" id="passcodeInput" class="form-control" placeholder="Enter password (e.g. 7730)" autocomplete="current-password" required>
+              <button type="button" class="toggle-pass" onclick="togglePassVisibility('passcodeInput')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
+            <p class="input-hint" id="loginHint">Team Entry Passcode: <strong>7730</strong></p>
+          </div>
+
+          <div id="loginError" class="alert alert-error" style="display: none;"></div>
+
+          <button type="submit" class="btn btn-primary btn-block">
+            Unlock & Enter
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- 2. TEAM SUBMISSION PORTAL -->
+    <section id="teamSection" class="view-section">
+      <div class="portal-header">
+        <div>
+          <div class="badge-pill">Team Idea Submission</div>
+          <h2>Submit a New SEO Growth Idea</h2>
+          <p class="text-muted">Propose an initiative and rate it using the standard ICE framework (1 to 10).</p>
+        </div>
+        <div class="quick-stats">
+          <div class="stat-bubble">
+            <span class="stat-number" id="teamTotalCount">0</span>
+            <span class="stat-label">Total Ideas Submitted</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-layout">
+        <!-- Main Form -->
+        <div class="card form-card">
+          <form id="ideaForm" onsubmit="handleIdeaSubmit(event)">
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label for="authorName">Your Name <span class="required">*</span></label>
+                <input type="text" id="authorName" class="form-control" placeholder="e.g. Rahul Sharma" required>
+              </div>
+              <div class="form-group flex-1">
+                <label for="authorEmail">Email ID <span class="required">*</span></label>
+                <input type="email" id="authorEmail" class="form-control" placeholder="e.g. rahul@company.com" required>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group flex-2">
+                <label for="ideaTitle">Idea Title <span class="required">*</span></label>
+                <input type="text" id="ideaTitle" class="form-control" placeholder="e.g. Programmatic Landing Pages for Top 100 Search Queries" required>
+              </div>
+              <div class="form-group flex-1">
+                <label for="ideaCategory">Category <span class="required">*</span></label>
+                <select id="ideaCategory" class="form-control" required>
+                  <option value="Content & Keywords">Content & Keywords</option>
+                  <option value="Technical SEO">Technical SEO</option>
+                  <option value="Link Building & PR">Link Building & PR</option>
+                  <option value="On-Page & Meta">On-Page & Meta</option>
+                  <option value="UX & Core Web Vitals">UX & Core Web Vitals</option>
+                  <option value="International SEO">International SEO</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="ideaDesc">Description & Hypothesis <span class="required">*</span></label>
+              <textarea id="ideaDesc" class="form-control" rows="4" placeholder="Briefly describe what we will do, target URLs/keywords, and expected traffic impact..." required></textarea>
+            </div>
+
+            <!-- ICE Framework Parameters Section -->
+            <div class="ice-framework-box">
+              <div class="ice-header">
+                <div>
+                  <h3 class="ice-title">ICE Score Parameters (1 to 10)</h3>
+                  <p class="ice-subtitle">Rate each metric from 1 (lowest) to 10 (highest)</p>
+                </div>
+                <div class="ice-formula-badge">
+                  Total ICE = (I + C + E) ÷ 3
+                </div>
+              </div>
+
+              <div class="ice-grid">
+                <!-- Impact -->
+                <div class="ice-control-card">
+                  <div class="ice-card-top">
+                    <span class="ice-letter impact-letter">I</span>
+                    <div class="ice-card-text">
+                      <strong>Impact</strong>
+                      <span>Traffic & Rank Potential</span>
+                    </div>
+                    <span class="ice-val-pill" id="impactValBadge">7</span>
+                  </div>
+                  <input type="range" id="impactInput" min="1" max="10" value="7" class="ice-range" oninput="updateIcePreview()">
+                  <div class="range-labels">
+                    <span>1 (Low)</span>
+                    <span>5</span>
+                    <span>10 (Massive)</span>
+                  </div>
+                </div>
+
+                <!-- Confidence -->
+                <div class="ice-control-card">
+                  <div class="ice-card-top">
+                    <span class="ice-letter conf-letter">C</span>
+                    <div class="ice-card-text">
+                      <strong>Confidence</strong>
+                      <span>Certainty of Success</span>
+                    </div>
+                    <span class="ice-val-pill" id="confidenceValBadge">8</span>
+                  </div>
+                  <input type="range" id="confidenceInput" min="1" max="10" value="8" class="ice-range" oninput="updateIcePreview()">
+                  <div class="range-labels">
+                    <span>1 (Risky)</span>
+                    <span>5</span>
+                    <span>10 (Guaranteed)</span>
+                  </div>
+                </div>
+
+                <!-- Ease -->
+                <div class="ice-control-card">
+                  <div class="ice-card-top">
+                    <span class="ice-letter ease-letter">E</span>
+                    <div class="ice-card-text">
+                      <strong>Ease</strong>
+                      <span>Implementation Speed</span>
+                    </div>
+                    <span class="ice-val-pill" id="easeValBadge">6</span>
+                  </div>
+                  <input type="range" id="easeInput" min="1" max="10" value="6" class="ice-range" oninput="updateIcePreview()">
+                  <div class="range-labels">
+                    <span>1 (Very Hard)</span>
+                    <span>5</span>
+                    <span>10 (Quick Win)</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="reset" class="btn btn-outline" onclick="setTimeout(updateIcePreview, 10)">Clear</button>
+              <button type="submit" class="btn btn-primary btn-lg" id="submitIdeaBtn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="22" y1="2" x2="11" y2="13"></line>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+                Submit SEO Idea
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Live Preview Sidebar -->
+        <aside class="preview-sidebar">
+          <div class="card preview-card">
+            <div class="preview-header">
+              <span class="badge-subtle">Live Preview</span>
+              <span class="preview-date" id="previewDate">Today</span>
+            </div>
+            <h4 class="preview-title" id="previewTitle">Your Idea Title will appear here</h4>
+            <div class="preview-meta">
+              <span class="preview-author" id="previewAuthor">By Submitter</span>
+              <span class="badge-tag" id="previewCategory">Content & Keywords</span>
+            </div>
+            <p class="preview-desc" id="previewDesc">Description summary will be displayed here as you type...</p>
+            
+            <div class="preview-scores">
+              <div class="mini-score-item">
+                <span>Impact</span>
+                <strong id="prevImp">7/10</strong>
+              </div>
+              <div class="mini-score-item">
+                <span>Confidence</span>
+                <strong id="prevConf">8/10</strong>
+              </div>
+              <div class="mini-score-item">
+                <span>Ease</span>
+                <strong id="prevEase">6/10</strong>
+              </div>
+            </div>
+            <div class="preview-footer-note">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+              Calculated Total ICE score is reviewed in the Admin Portal.
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- 3. TEAM FEED VIEW -->
+    <section id="feedSection" class="view-section">
+      <div class="portal-header">
+        <div>
+          <div class="badge-pill">Team Collaboration</div>
+          <h2>Submitted Ideas Stream</h2>
+          <p class="text-muted">Explore SEO ideas submitted across the team.</p>
+        </div>
+        <div>
+          <button class="btn btn-primary btn-sm" onclick="switchView('team')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Submit New Idea
+          </button>
+        </div>
+      </div>
+
+      <div class="feed-grid" id="teamFeedContainer">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+    <!-- 4. ADMIN EVALUATION & STAGE MANAGEMENT PORTAL -->
+    <section id="adminSection" class="view-section">
+      <div class="portal-header admin-header-banner">
+        <div>
+          <div class="badge-admin">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            Admin Management Console
+          </div>
+          <h2>SEO Ideas ICE Evaluation & Decision Hub</h2>
+          <p class="text-muted">Review individual ICE parameters, calculated total scores, and assign decision stages.</p>
+        </div>
+
+        <div class="admin-top-actions">
+          <button class="btn btn-outline btn-sm" onclick="exportDataToCSV()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Export CSV
+          </button>
+          <button class="btn btn-outline btn-sm" onclick="resetToSampleData()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
+              <path d="M21 3v5h-5"></path>
+              <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
+              <path d="M8 16H3v5"></path>
+            </svg>
+            Sample Data
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI Metric Cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-card-label">Total Submissions</div>
+          <div class="stat-card-value" id="kpiTotal">0</div>
+          <div class="stat-card-sub">Active pipeline ideas</div>
+        </div>
+        <div class="stat-card stat-accent-green">
+          <div class="stat-card-label">Go Ahead / Selected</div>
+          <div class="stat-card-value" id="kpiSelected">0</div>
+          <div class="stat-card-sub">Approved for execution</div>
+        </div>
+        <div class="stat-card stat-accent-amber">
+          <div class="stat-card-label">In Discussion</div>
+          <div class="stat-card-value" id="kpiDiscussion">0</div>
+          <div class="stat-card-sub">Reviewing feasibility</div>
+        </div>
+        <div class="stat-card stat-accent-blue">
+          <div class="stat-card-label">Avg. Total ICE Score</div>
+          <div class="stat-card-value" id="kpiAvgIce">0.0</div>
+          <div class="stat-card-sub">Scale of 1.0 to 10.0</div>
+        </div>
+      </div>
+
+      <!-- Filter, Search & Status Quick Filter Bar -->
+      <div class="card filter-bar">
+        <div class="filter-row">
+          <!-- Search input -->
+          <div class="search-box">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="adminSearch" placeholder="Search by title, description, author or email..." oninput="filterAdminIdeas()">
+          </div>
+
+          <!-- Status Filter -->
+          <div class="select-box">
+            <label for="adminStatusFilter">Stage Status:</label>
+            <select id="adminStatusFilter" onchange="filterAdminIdeas()">
+              <option value="All">All Stages</option>
+              <option value="Go ahead">Go ahead</option>
+              <option value="Selected">Selected</option>
+              <option value="Route for discussion">Route for discussion</option>
+              <option value="Discussion">Discussion</option>
+              <option value="Rejected">Rejected</option>
+            </select>
+          </div>
+
+          <!-- Sort Order -->
+          <div class="select-box">
+            <label for="adminSort">Sort by:</label>
+            <select id="adminSort" onchange="filterAdminIdeas()">
+              <option value="ice-desc">Highest Total ICE Score</option>
+              <option value="ice-asc">Lowest Total ICE Score</option>
+              <option value="newest">Newest First</option>
+              <option value="impact-desc">Highest Impact</option>
+              <option value="confidence-desc">Highest Confidence</option>
+              <option value="ease-desc">Highest Ease</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Quick Status Pills -->
+        <div class="stage-pills-bar">
+          <span class="stage-pill-label">Quick filter:</span>
+          <button class="stage-pill active" onclick="setQuickStatus('All', this)">All (<span id="countAll">0</span>)</button>
+          <button class="stage-pill pill-go-ahead" onclick="setQuickStatus('Go ahead', this)">Go ahead (<span id="countGoAhead">0</span>)</button>
+          <button class="stage-pill pill-selected" onclick="setQuickStatus('Selected', this)">Selected (<span id="countSelected">0</span>)</button>
+          <button class="stage-pill pill-route" onclick="setQuickStatus('Route for discussion', this)">Route for discussion (<span id="countRoute">0</span>)</button>
+          <button class="stage-pill pill-discussion" onclick="setQuickStatus('Discussion', this)">Discussion (<span id="countDiscussion">0</span>)</button>
+          <button class="stage-pill pill-rejected" onclick="setQuickStatus('Rejected', this)">Rejected (<span id="countRejected">0</span>)</button>
+        </div>
+      </div>
+
+      <!-- Admin Ideas Table & Cards -->
+      <div class="card table-card">
+        <div class="table-responsive">
+          <table class="ideas-table" id="adminTable">
+            <thead>
+              <tr>
+                <th style="width: 280px;">SEO Idea & Submitter</th>
+                <th>Category</th>
+                <th style="width: 220px;">ICE Breakdown (1-10)</th>
+                <th style="text-align: center; width: 140px;">Total ICE Score</th>
+                <th style="width: 210px;">Selection Stage Status</th>
+                <th style="text-align: right; width: 100px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="adminTableBody">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+        <div id="noResultsState" class="empty-state" style="display: none;">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <h3>No ideas found matching criteria</h3>
+          <p>Try clearing filters or search terms.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: Admin Password Gate Modal (when clicking Admin from Team view) -->
+  <div class="modal-backdrop" id="adminModal" style="display: none;">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="auth-badge">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          Admin Verification
+        </div>
+        <button class="modal-close" onclick="closeAdminGate()">&times;</button>
+      </div>
+      <h3>Enter Admin Password</h3>
+      <p class="text-muted">Enter the 4-digit administrator passcode to access scoring and decision controls.</p>
+      
+      <form onsubmit="handleAdminModalUnlock(event)" style="margin-top: 16px;">
+        <div class="form-group">
+          <input type="password" id="adminModalPass" class="form-control" placeholder="Admin Passcode (8967)" required>
+          <p class="input-hint">Default Admin Passcode: <strong>8967</strong></p>
+        </div>
+        <div id="adminModalError" class="alert alert-error" style="display: none;"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" onclick="closeAdminGate()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Unlock Admin Portal</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: View/Edit Detail Modal -->
+  <div class="modal-backdrop" id="detailModal" style="display: none;">
+    <div class="modal-box modal-lg" id="detailModalContent">
+      <!-- Rendered via JS -->
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
