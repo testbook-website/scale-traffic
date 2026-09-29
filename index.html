@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=2.2">
+  <link rel="stylesheet" href="style.css?v=3.0">
 </head>
 <body>
   <!-- Header -->
@@ -23,40 +23,13 @@
         </div>
         <div class="brand-text">
           <span class="brand-title">SEO Ideas Hub</span>
-          <span class="brand-subtitle">Traffic & Growth Initiatives</span>
+          <span class="brand-subtitle" id="headerSubtitle">Traffic & Growth Initiatives</span>
         </div>
       </div>
 
-      <!-- Navigation Tabs (shown when authenticated) -->
-      <nav class="portal-nav" id="portalNav" style="display: none;">
-        <button class="nav-tab active" id="tabTeam" onclick="switchView('team')">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-          Submit Idea
-        </button>
-        <button class="nav-tab" id="tabFeed" onclick="switchView('feed')">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="3" width="7" height="7"></rect>
-            <rect x="14" y="3" width="7" height="7"></rect>
-            <rect x="14" y="14" width="7" height="7"></rect>
-            <rect x="3" y="14" width="7" height="7"></rect>
-          </svg>
-          Ideas Stream
-        </button>
-        <button class="nav-tab admin-nav-tab" id="tabAdmin" onclick="handleAdminTabClick()" style="display: none;">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-          </svg>
-          Admin Portal
-        </button>
-      </nav>
-
       <!-- Right Header Controls -->
       <div class="header-right" id="headerRight" style="display: none;">
-        <!-- Small Discreet Admin Access Button -->
+        <!-- Discreet Small Admin button for team view -->
         <button class="btn-discreet" id="discreetAdminBtn" onclick="openAdminGateModal()" title="Admin Access">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
@@ -71,7 +44,7 @@
             <polyline points="16 17 21 12 16 7"></polyline>
             <line x1="21" y1="12" x2="9" y2="12"></line>
           </svg>
-          Logout
+          Exit
         </button>
       </div>
     </div>
@@ -80,7 +53,7 @@
   <!-- Main Container -->
   <main class="main-content">
 
-    <!-- 1. AUTH GATE / SINGLE PASSCODE LOGIN -->
+    <!-- 1. AUTH GATE / PASSCODE LOGIN -->
     <section id="authSection" class="view-section active">
       <div class="auth-card">
         <div class="auth-icon-wrap">
@@ -90,7 +63,7 @@
           </svg>
         </div>
         <h1>Enter SEO Dashboard</h1>
-        <p class="auth-desc">Please enter your 4-digit passcode to continue.</p>
+        <p class="auth-desc">Enter your 4-digit passcode to continue.</p>
 
         <form id="loginForm" onsubmit="return handleUniversalLogin(event);">
           <div class="form-group">
@@ -108,8 +81,8 @@
 
           <div id="loginError" class="alert alert-error" style="display: none;"></div>
 
-          <button type="button" class="btn btn-primary btn-block" onclick="handleUniversalLogin(event)">
-            Enter Dashboard
+          <button type="submit" class="btn btn-primary btn-block">
+            Enter
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="5" y1="12" x2="19" y2="12"></line>
               <polyline points="12 5 19 12 12 19"></polyline>
@@ -119,23 +92,35 @@
       </div>
     </section>
 
-    <!-- 2. TEAM IDEA SUBMISSION PORTAL -->
+    <!-- 2. TEAM IDEA SUBMISSION FORM (ONLY SUBMISSION - NO FEED) -->
     <section id="teamSection" class="view-section">
       <div class="portal-header">
         <div>
           <h2>Submit SEO Growth Idea</h2>
-          <p class="text-muted">Propose an initiative and rate it using the ICE framework parameters.</p>
-        </div>
-        <div class="quick-stats">
-          <div class="stat-bubble">
-            <span class="stat-number" id="teamTotalCount">0</span>
-            <span class="stat-label">Total Ideas</span>
-          </div>
+          <p class="text-muted">Propose your initiative and rate its individual ICE parameters (1 to 10).</p>
         </div>
       </div>
 
-      <div class="form-layout">
-        <!-- Main Form -->
+      <!-- Submission Success Card (shown upon submit) -->
+      <div id="submitSuccessCard" class="card success-card" style="display: none;">
+        <div class="success-icon-wrap">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </div>
+        <h3>Idea Submitted Successfully!</h3>
+        <p class="text-muted">Your proposal has been securely sent to the Admin team for review and ICE prioritization.</p>
+        <button class="btn btn-primary" onclick="resetFormForNewIdea()" style="margin-top: 1rem;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Submit Another Idea
+        </button>
+      </div>
+
+      <!-- Main Form -->
+      <div id="submissionFormWrap" class="form-layout">
         <div class="card form-card">
           <form id="ideaForm" onsubmit="handleIdeaSubmit(event)">
             <div class="form-row">
@@ -152,24 +137,21 @@
             <div class="form-row">
               <div class="form-group flex-2">
                 <label for="ideaTitle">Idea 1 / Title <span class="required">*</span></label>
-                <input type="text" id="ideaTitle" class="form-control" placeholder="e.g. Programmatic Landing Pages for Competitor Keywords" required>
+                <input type="text" id="ideaTitle" class="form-control" placeholder="e.g. Programmatic Landing Pages for Top Search Queries" required>
               </div>
               <div class="form-group flex-1">
                 <label for="ideaCategory">Category <span class="required">*</span></label>
                 <select id="ideaCategory" class="form-control" required>
-                  <option value="Content & Keywords">Content & Keywords</option>
-                  <option value="Technical SEO">Technical SEO</option>
-                  <option value="Link Building & PR">Link Building & PR</option>
-                  <option value="On-Page & Meta">On-Page & Meta</option>
-                  <option value="UX & Core Web Vitals">UX & Core Web Vitals</option>
-                  <option value="Other">Other</option>
+                  <option value="Uplifting Existing Traffic">Uplifting Existing Traffic</option>
+                  <option value="New Traffic/New Idea">New Traffic/New Idea</option>
+                  <option value="New Medium to Get the Users">New Medium to Get the Users</option>
                 </select>
               </div>
             </div>
 
             <div class="form-group">
               <label for="ideaDesc">Description <span class="required">*</span></label>
-              <textarea id="ideaDesc" class="form-control" rows="3" placeholder="Brief explanation of the idea and expected impact..." required></textarea>
+              <textarea id="ideaDesc" class="form-control" rows="3" placeholder="Brief explanation of the idea, execution steps, and target impact..." required></textarea>
             </div>
 
             <!-- ICE Framework Parameters (1 to 10) -->
@@ -261,7 +243,7 @@
             <h4 class="preview-title" id="previewTitle">Your Idea Title</h4>
             <div class="preview-meta">
               <span class="preview-author" id="previewAuthor">By Submitter</span>
-              <span class="badge-tag" id="previewCategory">Content & Keywords</span>
+              <span class="badge-tag" id="previewCategory">Uplifting Existing Traffic</span>
             </div>
             <p class="preview-desc" id="previewDesc">Description will preview here as you type...</p>
             
@@ -284,30 +266,7 @@
       </div>
     </section>
 
-    <!-- 3. TEAM FEED VIEW -->
-    <section id="feedSection" class="view-section">
-      <div class="portal-header">
-        <div>
-          <h2>Ideas Stream</h2>
-          <p class="text-muted">Explore submitted SEO ideas across the team.</p>
-        </div>
-        <div>
-          <button class="btn btn-primary btn-sm" onclick="switchView('team')">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-            Submit New Idea
-          </button>
-        </div>
-      </div>
-
-      <div class="feed-grid" id="teamFeedContainer">
-        <!-- Rendered by JS -->
-      </div>
-    </section>
-
-    <!-- 4. ADMIN PORTAL (ICE Scoring & Selection Stages) -->
+    <!-- 3. ADMIN PORTAL (Only visible to Admin who enters 8967) -->
     <section id="adminSection" class="view-section">
       <div class="portal-header admin-header-banner">
         <div>
@@ -357,6 +316,16 @@
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
             <input type="text" id="adminSearch" placeholder="Search ideas, names, emails..." oninput="filterAdminIdeas()">
+          </div>
+
+          <div class="select-box">
+            <label for="adminCategoryFilter">Category:</label>
+            <select id="adminCategoryFilter" onchange="filterAdminIdeas()">
+              <option value="All">All Categories</option>
+              <option value="Uplifting Existing Traffic">Uplifting Existing Traffic</option>
+              <option value="New Traffic/New Idea">New Traffic/New Idea</option>
+              <option value="New Medium to Get the Users">New Medium to Get the Users</option>
+            </select>
           </div>
 
           <div class="select-box">
@@ -451,6 +420,6 @@
   <!-- Toast Container -->
   <div id="toastContainer" class="toast-container"></div>
 
-  <script src="app.js?v=2.2"></script>
+  <script src="app.js?v=3.0"></script>
 </body>
 </html>

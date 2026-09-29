@@ -3,7 +3,6 @@
    ========================================================================== */
 
 :root {
-  /* Color Palette - Light & Executive */
   --bg-main: #f8fafc;
   --bg-card: #ffffff;
   --bg-subtle: #f1f5f9;
@@ -17,12 +16,10 @@
   --border-color: #e2e8f0;
   --border-focus: #2563eb;
   
-  /* Primary */
   --primary: #2563eb;
   --primary-hover: #1d4ed8;
   --primary-light: #eff6ff;
   
-  /* Selection Stage Status Badges */
   --status-go-ahead-bg: #ecfdf5;
   --status-go-ahead-text: #047857;
   --status-go-ahead-border: #a7f3d0;
@@ -43,7 +40,6 @@
   --status-rejected-text: #b91c1c;
   --status-rejected-border: #fecaca;
   
-  /* Radii & Shadows */
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 14px;
@@ -58,7 +54,6 @@
   --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Reset */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -129,48 +124,6 @@ body {
   font-weight: 500;
 }
 
-/* Portal Nav */
-.portal-nav {
-  display: flex;
-  background: var(--bg-subtle);
-  padding: 0.2rem;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--border-color);
-  gap: 0.2rem;
-}
-
-.nav-tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.4rem 0.9rem;
-  border-radius: var(--radius-full);
-  border: none;
-  background: transparent;
-  font-size: 0.825rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.nav-tab:hover {
-  color: var(--text-main);
-}
-
-.nav-tab.active {
-  background: #ffffff;
-  color: var(--primary);
-  box-shadow: var(--shadow-sm);
-}
-
-.admin-nav-tab {
-  color: #6d28d9;
-}
-.admin-nav-tab.active {
-  color: #6d28d9;
-}
-
 .header-right {
   display: flex;
   align-items: center;
@@ -198,7 +151,7 @@ body {
   border-color: var(--border-color);
 }
 
-/* Main */
+/* Main Content */
 .main-content {
   max-width: 1280px;
   width: 100%;
@@ -264,6 +217,34 @@ body {
   text-align: center;
   font-weight: 700;
   padding: 0.75rem 1rem;
+}
+
+/* Success Card */
+.success-card {
+  max-width: 500px;
+  margin: 2rem auto;
+  text-align: center;
+  padding: 2.5rem 2rem;
+}
+
+.success-icon-wrap {
+  width: 60px;
+  height: 60px;
+  background: #ecfdf5;
+  color: #059669;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.25rem;
+  border: 2px solid #a7f3d0;
+}
+
+.success-card h3 {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 0.5rem;
 }
 
 /* Forms & Cards */
@@ -459,28 +440,6 @@ textarea.form-control {
   letter-spacing: 0.04em;
 }
 
-.stat-bubble {
-  background: #ffffff;
-  border: 1px solid var(--border-color);
-  padding: 0.4rem 0.85rem;
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-}
-
-.stat-number {
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: var(--primary);
-}
-
-.stat-label {
-  font-size: 0.725rem;
-  color: var(--text-muted);
-  font-weight: 600;
-}
-
 /* ICE Framework */
 .ice-framework-box {
   background: #f8fafc;
@@ -672,55 +631,6 @@ textarea.form-control {
   font-size: 0.875rem;
 }
 
-/* Feed View */
-.feed-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 1rem;
-}
-
-.feed-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  padding: 1.15rem;
-  box-shadow: var(--shadow-sm);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.feed-top {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 0.5rem;
-}
-
-.feed-title {
-  font-size: 0.95rem;
-  font-weight: 700;
-  margin-bottom: 0.4rem;
-}
-
-.feed-desc {
-  font-size: 0.825rem;
-  color: var(--text-secondary);
-  margin-bottom: 0.85rem;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.feed-bottom {
-  border-top: 1px solid var(--border-color);
-  padding-top: 0.65rem;
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.725rem;
-  color: var(--text-muted);
-}
-
 /* Admin Portal */
 .stats-grid {
   display: grid;
@@ -769,7 +679,7 @@ textarea.form-control {
 
 .search-box {
   flex: 1;
-  min-width: 240px;
+  min-width: 200px;
   position: relative;
   display: flex;
   align-items: center;
@@ -958,20 +868,6 @@ textarea.form-control {
 .status-dropdown.st-Route-for-discussion { background: var(--status-route-bg); color: var(--status-route-text); border-color: var(--status-route-border); }
 .status-dropdown.st-Discussion { background: var(--status-disc-bg); color: var(--status-disc-text); border-color: var(--status-disc-border); }
 .status-dropdown.st-Go-ahead { background: var(--status-go-ahead-bg); color: var(--status-go-ahead-text); border-color: var(--status-go-ahead-border); }
-
-.status-tag {
-  display: inline-block;
-  font-size: 0.725rem;
-  font-weight: 700;
-  padding: 0.2rem 0.55rem;
-  border-radius: var(--radius-full);
-}
-
-.st-Selected-tag { background: var(--status-selected-bg); color: var(--status-selected-text); }
-.st-Rejected-tag { background: var(--status-rejected-bg); color: var(--status-rejected-text); }
-.st-Route-tag { background: var(--status-route-bg); color: var(--status-route-text); }
-.st-Disc-tag { background: var(--status-disc-bg); color: var(--status-disc-text); }
-.st-Go-tag { background: var(--status-go-ahead-bg); color: var(--status-go-ahead-text); }
 
 .table-actions {
   display: flex;

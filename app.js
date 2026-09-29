@@ -1,8 +1,8 @@
 /**
  * SEO Ideas Hub - Application Logic
  * Passcodes:
- *   Dashboard (Team Entry): 7730
- *   Admin Portal: 8967
+ *   Team Entry: 7730 (Submit Idea only)
+ *   Admin Portal: 8967 (View all ideas, ICE scores, status)
  */
 
 const PASSCODES = {
@@ -10,32 +10,32 @@ const PASSCODES = {
   admin: '8967'
 };
 
-const STORAGE_KEY = 'seo_hub_ideas_v2';
+const STORAGE_KEY = 'seo_hub_ideas_v3';
 const AUTH_KEY = 'seo_hub_auth_role';
 
-// Initial Sample Data
+// Initial Sample Data with the 3 exact categories
 const INITIAL_IDEAS = [
   {
     id: 'idea-101',
     name: 'Sumit Gupta',
     email: 'sumit@growthseo.com',
-    title: 'Programmatic Landing Pages for Top 500 Competitor Comparison Queries',
-    category: 'Content & Keywords',
-    description: 'Build automated, high-quality comparison templates (e.g., Brand vs Alternative) leveraging structured data and feature matrices to capture high-intent bottom-of-funnel search volume.',
+    title: 'Programmatic Landing Pages for Competitor Comparison Queries',
+    category: 'New Traffic/New Idea',
+    description: 'Build automated, high-quality comparison templates leveraging structured data and feature matrices to capture bottom-of-funnel search volume.',
     impact: 9,
     confidence: 8,
     ease: 7,
     status: 'Go ahead',
     createdAt: '2026-09-28T10:30:00Z',
-    adminNotes: 'Approved for Q4 sprint.'
+    adminNotes: 'High conversion intent.'
   },
   {
     id: 'idea-102',
     name: 'Priya Sharma',
     email: 'priya.s@company.in',
-    title: 'Core Web Vitals LCP Optimization: Next-gen Image Formats (AVIF/WebP)',
-    category: 'UX & Core Web Vitals',
-    description: 'Convert all hero banners and blog images to modern AVIF/WebP with explicit width/height and responsive srcset to bring 75th percentile LCP below 2.0s.',
+    title: 'Core Web Vitals & Image Optimization across Top 50 High-Traffic URLs',
+    category: 'Uplifting Existing Traffic',
+    description: 'Convert all hero banners and blog images to modern AVIF/WebP with explicit width/height to bring LCP below 2.0s and lift rankings.',
     impact: 8,
     confidence: 9,
     ease: 8,
@@ -47,43 +47,15 @@ const INITIAL_IDEAS = [
     id: 'idea-103',
     name: 'Arun Verma',
     email: 'arun@searchmarketing.io',
-    title: 'Digital PR Campaign: Annual Industry Salary & Trends Benchmark Report',
-    category: 'Link Building & PR',
-    description: 'Conduct proprietary survey and create interactive charts. Pitch exclusive data to tier-1 publications for high-authority editorial backlinks.',
+    title: 'Interactive Free Tool & Calculator Widget for Backlink & Referral Traffic',
+    category: 'New Medium to Get the Users',
+    description: 'Launch an interactive free tool widget to attract direct tool users, social shares, and authoritative media backlinks.',
     impact: 9,
     confidence: 7,
     ease: 5,
     status: 'Route for discussion',
     createdAt: '2026-09-29T08:00:00Z',
-    adminNotes: 'Reviewing PR agency budget.'
-  },
-  {
-    id: 'idea-104',
-    name: 'Neha Kapoor',
-    email: 'neha@company.com',
-    title: 'Automated Schema Markup for FAQ and How-To Rich Snippets',
-    category: 'Technical SEO',
-    description: 'Implement JSON-LD structured data dynamically across product help guides to maximize SERP real estate and click-through rates.',
-    impact: 7,
-    confidence: 8,
-    ease: 9,
-    status: 'Discussion',
-    createdAt: '2026-09-29T09:45:00Z',
-    adminNotes: 'Checking schema templates.'
-  },
-  {
-    id: 'idea-105',
-    name: 'Vikram Mehta',
-    email: 'vikram.m@test.com',
-    title: 'Direct AI Translation of 50 Articles without Local Keyword Optimization',
-    category: 'Other',
-    description: 'Directly translate pages without localized keyword research or native review.',
-    impact: 5,
-    confidence: 3,
-    ease: 7,
-    status: 'Rejected',
-    createdAt: '2026-09-27T11:20:00Z',
-    adminNotes: 'Quality risk.'
+    adminNotes: 'Estimating widget development effort.'
   }
 ];
 
@@ -123,7 +95,9 @@ function loadIdeas() {
 
 function saveIdeas() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(ideas));
-  renderAllViews();
+  if (currentRole === 'admin') {
+    renderAdminPortal();
+  }
 }
 
 // Universal Login
@@ -140,7 +114,7 @@ function handleUniversalLogin(event) {
   if (inputVal === PASSCODES.team) {
     if (errorEl) errorEl.style.display = 'none';
     unlockPortal('team');
-    showToast('Welcome to SEO Ideas Dashboard!', 'success');
+    showToast('Welcome to SEO Ideas Submission!', 'success');
     return false;
   } else if (inputVal === PASSCODES.admin) {
     if (errorEl) errorEl.style.display = 'none';
@@ -149,17 +123,12 @@ function handleUniversalLogin(event) {
     return false;
   } else {
     if (errorEl) {
-      errorEl.innerText = 'Incorrect passcode. Please enter 7730 for Team or 8967 for Admin.';
+      errorEl.innerText = 'Incorrect passcode. Please try again.';
       errorEl.style.display = 'block';
     }
     if (inputEl) inputEl.select();
     return false;
   }
-}
-
-// Compatibility alias
-function handleLogin(event) {
-  return handleUniversalLogin(event);
 }
 
 function togglePassVisibility(inputId) {
@@ -174,35 +143,30 @@ function unlockPortal(role) {
   sessionStorage.setItem(AUTH_KEY, role);
 
   const authSec = document.getElementById('authSection');
-  const portalNav = document.getElementById('portalNav');
   const headerRight = document.getElementById('headerRight');
+  const headerSubtitle = document.getElementById('headerSubtitle');
 
   if (authSec) authSec.classList.remove('active');
-  if (portalNav) portalNav.style.display = 'flex';
   if (headerRight) headerRight.style.display = 'flex';
 
-  const tabAdmin = document.getElementById('tabAdmin');
   const discreetAdminBtn = document.getElementById('discreetAdminBtn');
 
   if (role === 'admin') {
-    if (tabAdmin) tabAdmin.style.display = 'inline-flex';
     if (discreetAdminBtn) discreetAdminBtn.style.display = 'none';
+    if (headerSubtitle) headerSubtitle.innerText = 'Admin Evaluation & Decision Console';
     switchView('admin');
   } else {
-    if (tabAdmin) tabAdmin.style.display = 'none';
     if (discreetAdminBtn) discreetAdminBtn.style.display = 'inline-flex';
+    if (headerSubtitle) headerSubtitle.innerText = 'Traffic & Growth Initiatives';
+    resetFormForNewIdea();
     switchView('team');
   }
-
-  renderAllViews();
 }
 
 function logout() {
   currentRole = null;
   sessionStorage.removeItem(AUTH_KEY);
-  const portalNav = document.getElementById('portalNav');
   const headerRight = document.getElementById('headerRight');
-  if (portalNav) portalNav.style.display = 'none';
   if (headerRight) headerRight.style.display = 'none';
   showAuthView();
   showToast('Logged out.');
@@ -224,21 +188,9 @@ function showAuthView() {
 function switchView(viewName) {
   hideAllSections();
 
-  const tabTeam = document.getElementById('tabTeam');
-  const tabFeed = document.getElementById('tabFeed');
-  const tabAdmin = document.getElementById('tabAdmin');
-
-  if (tabTeam) tabTeam.classList.toggle('active', viewName === 'team');
-  if (tabFeed) tabFeed.classList.toggle('active', viewName === 'feed');
-  if (tabAdmin) tabAdmin.classList.toggle('active', viewName === 'admin');
-
   if (viewName === 'team') {
     const teamSec = document.getElementById('teamSection');
     if (teamSec) teamSec.classList.add('active');
-  } else if (viewName === 'feed') {
-    const feedSec = document.getElementById('feedSection');
-    if (feedSec) feedSec.classList.add('active');
-    renderTeamFeed();
   } else if (viewName === 'admin') {
     const adminSec = document.getElementById('adminSection');
     if (adminSec) adminSec.classList.add('active');
@@ -250,7 +202,7 @@ function hideAllSections() {
   document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
 }
 
-// Admin Gate Modal for team users
+// Admin Gate Modal for switching from team view
 function openAdminGateModal() {
   const modal = document.getElementById('adminModal');
   const input = document.getElementById('adminModalPass');
@@ -278,22 +230,14 @@ function handleAdminModalUnlock(event) {
     showToast('Admin Mode Enabled!', 'success');
   } else {
     if (err) {
-      err.innerText = 'Incorrect Admin Password (8967).';
+      err.innerText = 'Incorrect Admin Password.';
       err.style.display = 'block';
     }
     if (input) input.select();
   }
 }
 
-function handleAdminTabClick() {
-  if (currentRole === 'admin') {
-    switchView('admin');
-  } else {
-    openAdminGateModal();
-  }
-}
-
-// Form & ICE Calculations
+// Live ICE & Preview Updates
 function updateIcePreview() {
   const impEl = document.getElementById('impactInput');
   const confEl = document.getElementById('confidenceInput');
@@ -390,7 +334,19 @@ function handleIdeaSubmit(event) {
   ideas.unshift(newIdea);
   saveIdeas();
 
-  document.getElementById('ideaForm').reset();
+  // Show success card and hide form so no other ideas are seen
+  document.getElementById('submissionFormWrap').style.display = 'none';
+  document.getElementById('submitSuccessCard').style.display = 'block';
+
+  showToast('🎉 Idea submitted successfully!', 'success');
+}
+
+function resetFormForNewIdea() {
+  const formWrap = document.getElementById('submissionFormWrap');
+  const successCard = document.getElementById('submitSuccessCard');
+  const form = document.getElementById('ideaForm');
+
+  if (form) form.reset();
   document.getElementById('impactInput').value = 7;
   document.getElementById('confidenceInput').value = 8;
   document.getElementById('easeInput').value = 6;
@@ -403,10 +359,11 @@ function handleIdeaSubmit(event) {
 
   if (pT) pT.innerText = 'Your Idea Title';
   if (pA) pA.innerText = 'By Submitter';
-  if (pC) pC.innerText = 'Content & Keywords';
+  if (pC) pC.innerText = 'Uplifting Existing Traffic';
   if (pD) pD.innerText = 'Description will preview here as you type...';
 
-  showToast('🎉 Idea submitted successfully!', 'success');
+  if (successCard) successCard.style.display = 'none';
+  if (formWrap) formWrap.style.display = 'grid';
 }
 
 // Calculate Total ICE Score: (I + C + E) / 3
@@ -415,58 +372,7 @@ function calculateIceScore(idea) {
   return (sum / 3).toFixed(1);
 }
 
-// Rendering
-function renderAllViews() {
-  const teamTotal = document.getElementById('teamTotalCount');
-  if (teamTotal) teamTotal.innerText = ideas.length;
-  renderTeamFeed();
-  if (currentRole === 'admin') {
-    renderAdminPortal();
-  }
-}
-
-function renderTeamFeed() {
-  const container = document.getElementById('teamFeedContainer');
-  if (!container) return;
-
-  if (ideas.length === 0) {
-    container.innerHTML = `
-      <div class="empty-state" style="grid-column: 1 / -1;">
-        <h3>No ideas submitted yet</h3>
-        <p>Be the first one to propose an SEO initiative!</p>
-      </div>
-    `;
-    return;
-  }
-
-  container.innerHTML = ideas.map(idea => {
-    const formattedDate = new Date(idea.createdAt).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-
-    const statusTagClass = getStatusTagClass(idea.status);
-
-    return `
-      <div class="feed-card">
-        <div>
-          <div class="feed-top">
-            <span class="badge-tag">${escapeHtml(idea.category)}</span>
-            <span class="status-tag ${statusTagClass}">${escapeHtml(idea.status)}</span>
-          </div>
-          <h3 class="feed-title">${escapeHtml(idea.title)}</h3>
-          <p class="feed-desc">${escapeHtml(idea.description)}</p>
-        </div>
-        <div class="feed-bottom">
-          <span>By <strong>${escapeHtml(idea.name)}</strong></span>
-          <span>${formattedDate}</span>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
+// Admin Portal Logic
 function renderAdminPortal() {
   updateAdminKPIs();
   filterAdminIdeas();
@@ -524,6 +430,8 @@ function filterAdminIdeas() {
   const search = (searchInput ? searchInput.value : '').toLowerCase().trim();
   const statusFilterEl = document.getElementById('adminStatusFilter');
   const statusFilter = statusFilterEl ? statusFilterEl.value : 'All';
+  const categoryFilterEl = document.getElementById('adminCategoryFilter');
+  const categoryFilter = categoryFilterEl ? categoryFilterEl.value : 'All';
   const sortEl = document.getElementById('adminSort');
   const sort = sortEl ? sortEl.value : 'ice-desc';
 
@@ -531,6 +439,10 @@ function filterAdminIdeas() {
 
   if (statusFilter !== 'All') {
     filtered = filtered.filter(i => i.status === statusFilter);
+  }
+
+  if (categoryFilter !== 'All') {
+    filtered = filtered.filter(i => i.category === categoryFilter);
   }
 
   if (search) {
@@ -592,9 +504,9 @@ function renderAdminTableRows(filteredIdeas) {
           <div class="cell-idea">
             <span class="cell-idea-title" onclick="openDetailModal('${idea.id}')">${escapeHtml(idea.title)}</span>
             <div class="cell-idea-meta">
-              <span>${escapeHtml(idea.name)}</span>
+              <span>👤 ${escapeHtml(idea.name)}</span>
               <span>•</span>
-              <span>${escapeHtml(idea.email)}</span>
+              <span>✉️ ${escapeHtml(idea.email)}</span>
             </div>
           </div>
         </td>
@@ -807,17 +719,6 @@ function getIceScoreBadgeClass(score) {
 
 function getStatusDropdownClass(status) {
   return `st-${status.replace(/\s+/g, '-')}`;
-}
-
-function getStatusTagClass(status) {
-  switch (status) {
-    case 'Selected': return 'st-Selected-tag';
-    case 'Rejected': return 'st-Rejected-tag';
-    case 'Route for discussion': return 'st-Route-tag';
-    case 'Discussion': return 'st-Disc-tag';
-    case 'Go ahead': return 'st-Go-tag';
-    default: return 'st-Disc-tag';
-  }
 }
 
 function escapeHtml(string) {
