@@ -1,8 +1,10 @@
 /**
- * SEO Ideas Hub - Application Logic
+ * SEO Ideas Hub - Application Logic with Google Sheet Sync
  * Passcodes:
  *   Team Entry: 7730 (Submit Idea only)
  *   Admin Portal: 8967 (View all ideas, ICE scores, status)
+ *
+ * Google Sheet: https://docs.google.com/spreadsheets/d/1U85yUu5J21RHuxNq-Sc38_zklRSWiGkLitB8w6SChIg/edit
  */
 
 const PASSCODES = {
@@ -10,10 +12,14 @@ const PASSCODES = {
   admin: '8967'
 };
 
+// Google Apps Script Web App Deployment URL
+// After deploying google-apps-script.js in Google Sheets (Extensions > Apps Script), paste URL here or configure in Admin:
+let GOOGLE_SHEET_WEBAPP_URL = localStorage.getItem('seo_hub_webapp_url') || '';
+
 const STORAGE_KEY = 'seo_hub_ideas_v3';
 const AUTH_KEY = 'seo_hub_auth_role';
 
-// Initial Sample Data with the 3 exact categories
+// Initial Starter Data
 const INITIAL_IDEAS = [
   {
     id: 'idea-101',
@@ -60,7 +66,7 @@ const INITIAL_IDEAS = [
 ];
 
 // State
-let currentRole = null; // 'team' | 'admin' | null
+let currentRole = null;
 let ideas = [];
 let currentAdminQuickFilter = 'All';
 
@@ -123,7 +129,7 @@ function handleUniversalLogin(event) {
     return false;
   } else {
     if (errorEl) {
-      errorEl.innerText = 'Incorrect passcode. Please try again.';
+      errorEl.innerText = 'Incorrect passcode. Please enter 7730 for Team or 8967 for Admin.';
       errorEl.style.display = 'block';
     }
     if (inputEl) inputEl.select();
@@ -155,6 +161,7 @@ function unlockPortal(role) {
     if (discreetAdminBtn) discreetAdminBtn.style.display = 'none';
     if (headerSubtitle) headerSubtitle.innerText = 'Admin Evaluation & Decision Console';
     switchView('admin');
+    fetchLiveIdeasFromSheet(false); // auto-sync from sheet silently on admin load
   } else {
     if (discreetAdminBtn) discreetAdminBtn.style.display = 'inline-flex';
     if (headerSubtitle) headerSubtitle.innerText = 'Traffic & Growth Initiatives';
@@ -202,7 +209,7 @@ function hideAllSections() {
   document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
 }
 
-// Admin Gate Modal for switching from team view
+// Admin Gate Modal
 function openAdminGateModal() {
   const modal = document.getElementById('adminModal');
   const input = document.getElementById('adminModalPass');
@@ -299,6 +306,7 @@ function setupLivePreviewListeners() {
   }
 }
 
+// Submit Idea Handler
 function handleIdeaSubmit(event) {
   event.preventDefault();
 
@@ -331,14 +339,25 @@ function handleIdeaSubmit(event) {
     adminNotes: ''
   };
 
+  // 1. Save locally
   ideas.unshift(newIdea);
   saveIdeas();
 
-  // Show success card and hide form so no other ideas are seen
+  // 2. Sync to Google Sheet asynchronously if WebApp URL is configured
+  if (GOOGLE_SHEET_WEBAPP_URL) {
+    fetch(GOOGLE_SHEET_WEBAPP_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newIdea)
+    }).catch(err => console.log('Sheet sync queued in background', err));
+  }
+
+  // 3. Show success card
   document.getElementById('submissionFormWrap').style.display = 'none';
   document.getElementById('submitSuccessCard').style.display = 'block';
 
-  showToast('🎉 Idea submitted successfully!', 'success');
+  showToast('🎉 Idea saved & sent to Admin!', 'success');
 }
 
 function resetFormForNewIdea() {
@@ -364,6 +383,60 @@ function resetFormForNewIdea() {
 
   if (successCard) successCard.style.display = 'none';
   if (formWrap) formWrap.style.display = 'grid';
+}
+
+// Fetch live ideas from Google Sheet Web App
+async function fetchLiveIdeasFromSheet(showFeedback = true) {
+  if (!GOOGLE_SHEET_WEBAPP_URL) {
+    if (showFeedback) {
+      promptForWebAppUrl();
+    }
+    return;
+  }
+
+  const syncBtn = document.getElementById('syncSheetBtn');
+  if (syncBtn) {
+    syncBtn.innerText = 'Syncing...';
+    syncBtn.disabled = true;
+  }
+
+  try {
+    const res = await fetch(GOOGLE_SHEET_WEBAPP_URL);
+    const json = await res.json();
+
+    if (json && json.status === 'success' && Array.isArray(json.ideas)) {
+      if (json.ideas.length > 0) {
+        ideas = json.ideas;
+        saveIdeas();
+      }
+      if (showFeedback) showToast(`Synced ${ideas.length} ideas from Google Sheet!`, 'success');
+    }
+  } catch (err) {
+    console.warn('Could not fetch from Google Sheet Web App:', err);
+    if (showFeedback) {
+      showToast('Loaded ideas from saved cache.', 'info');
+    }
+  } finally {
+    if (syncBtn) {
+      syncBtn.innerText = 'Sync from Google Sheet';
+      syncBtn.disabled = false;
+    }
+    renderAdminPortal();
+  }
+}
+
+function promptForWebAppUrl() {
+  const url = prompt(
+    'To sync live with your Google Sheet:\n1. Paste your deployed Google Apps Script Web App URL below:\n\n(See google-apps-script.js file in repo for the 1-minute setup guide)',
+    GOOGLE_SHEET_WEBAPP_URL
+  );
+
+  if (url && url.trim().startsWith('http')) {
+    GOOGLE_SHEET_WEBAPP_URL = url.trim();
+    localStorage.setItem('seo_hub_webapp_url', GOOGLE_SHEET_WEBAPP_URL);
+    showToast('Google Sheet Web App URL connected!', 'success');
+    fetchLiveIdeasFromSheet(true);
+  }
 }
 
 // Calculate Total ICE Score: (I + C + E) / 3
@@ -564,6 +637,17 @@ function updateIdeaStatus(id, newStatus, selectElement) {
     idea.status = newStatus;
     saveIdeas();
     selectElement.className = `status-dropdown ${getStatusDropdownClass(newStatus)}`;
+
+    // Sync status change to Google Sheet
+    if (GOOGLE_SHEET_WEBAPP_URL) {
+      fetch(GOOGLE_SHEET_WEBAPP_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'updateStatus', id: id, status: newStatus, adminNotes: idea.adminNotes })
+      }).catch(e => console.log('Sheet status update sent', e));
+    }
+
     showToast(`Status updated to "${newStatus}"`, 'success');
   }
 }
@@ -669,8 +753,19 @@ function saveDetailModalChanges(id) {
     if (stat) idea.status = stat.value;
     if (notes) idea.adminNotes = notes.value.trim();
     saveIdeas();
+
+    // Sync updated notes & status to Google Sheet
+    if (GOOGLE_SHEET_WEBAPP_URL) {
+      fetch(GOOGLE_SHEET_WEBAPP_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'updateStatus', id: id, status: idea.status, adminNotes: idea.adminNotes })
+      }).catch(e => console.log('Sheet detail update sent', e));
+    }
+
     closeDetailModal();
-    showToast('Saved!', 'success');
+    showToast('Saved to Sheet & Dashboard!', 'success');
   }
 }
 

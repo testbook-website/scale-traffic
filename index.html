@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SEO Ideas Dashboard</title>
-  <meta name="description" content="SEO Idea Submission and ICE Prioritization Dashboard.">
+  <meta name="description" content="SEO Idea Submission and ICE Prioritization Dashboard with Google Sheet Sync.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=3.0">
+  <link rel="stylesheet" href="style.css?v=3.5">
 </head>
 <body>
   <!-- Header -->
@@ -92,24 +92,31 @@
       </div>
     </section>
 
-    <!-- 2. TEAM IDEA SUBMISSION FORM (ONLY SUBMISSION - NO FEED) -->
+    <!-- 2. TEAM IDEA SUBMISSION FORM (ONLY SUBMISSION) -->
     <section id="teamSection" class="view-section">
       <div class="portal-header">
         <div>
           <h2>Submit SEO Growth Idea</h2>
           <p class="text-muted">Propose your initiative and rate its individual ICE parameters (1 to 10).</p>
         </div>
+        <div id="sheetStatusBadge" class="sheet-sync-pill" title="Connected to Google Sheet">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+          <span>Auto-saving to Google Sheet</span>
+        </div>
       </div>
 
-      <!-- Submission Success Card (shown upon submit) -->
+      <!-- Submission Success Card -->
       <div id="submitSuccessCard" class="card success-card" style="display: none;">
         <div class="success-icon-wrap">
           <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <polyline points="20 6 9 17 4 12"></polyline>
           </svg>
         </div>
-        <h3>Idea Submitted Successfully!</h3>
-        <p class="text-muted">Your proposal has been securely sent to the Admin team for review and ICE prioritization.</p>
+        <h3>Idea Saved to Google Sheet!</h3>
+        <p class="text-muted">Your proposal has been securely recorded and sent to the Admin team for review and ICE prioritization.</p>
         <button class="btn btn-primary" onclick="resetFormForNewIdea()" style="margin-top: 1rem;">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -222,7 +229,7 @@
 
             <div class="form-actions">
               <button type="reset" class="btn btn-outline" onclick="setTimeout(updateIcePreview, 10)">Clear</button>
-              <button type="submit" class="btn btn-primary btn-lg">
+              <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <line x1="22" y1="2" x2="11" y2="13"></line>
                   <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
@@ -266,7 +273,7 @@
       </div>
     </section>
 
-    <!-- 3. ADMIN PORTAL (Only visible to Admin who enters 8967) -->
+    <!-- 3. ADMIN PORTAL -->
     <section id="adminSection" class="view-section">
       <div class="portal-header admin-header-banner">
         <div>
@@ -276,6 +283,22 @@
         </div>
 
         <div class="admin-top-actions">
+          <button class="btn btn-outline btn-sm" onclick="fetchLiveIdeasFromSheet()" id="syncSheetBtn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="23 4 23 10 17 10"></polyline>
+              <polyline points="1 20 1 14 7 14"></polyline>
+              <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+            </svg>
+            Sync from Google Sheet
+          </button>
+          <a href="https://docs.google.com/spreadsheets/d/1U85yUu5J21RHuxNq-Sc38_zklRSWiGkLitB8w6SChIg/edit" target="_blank" class="btn btn-outline btn-sm">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+              <polyline points="15 3 21 3 21 9"></polyline>
+              <line x1="10" y1="14" x2="21" y2="3"></line>
+            </svg>
+            Open Sheet
+          </a>
           <button class="btn btn-outline btn-sm" onclick="exportDataToCSV()">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -420,6 +443,6 @@
   <!-- Toast Container -->
   <div id="toastContainer" class="toast-container"></div>
 
-  <script src="app.js?v=3.0"></script>
+  <script src="app.js?v=3.5"></script>
 </body>
 </html>

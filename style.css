@@ -247,6 +247,20 @@ body {
   margin-bottom: 0.5rem;
 }
 
+/* Sync Pill */
+.sheet-sync-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #047857;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  padding: 0.3rem 0.65rem;
+  border-radius: var(--radius-full);
+}
+
 /* Forms & Cards */
 .card {
   background: var(--bg-card);
@@ -337,6 +351,7 @@ textarea.form-control {
   cursor: pointer;
   border: 1px solid transparent;
   transition: var(--transition);
+  text-decoration: none;
 }
 
 .btn-sm {
