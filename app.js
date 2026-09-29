@@ -10,7 +10,7 @@ const PASSCODES = {
   admin: '8967'
 };
 
-const STORAGE_KEY = 'seo_hub_ideas_v1';
+const STORAGE_KEY = 'seo_hub_ideas_v2';
 const AUTH_KEY = 'seo_hub_auth_role';
 
 // Initial Sample Data
@@ -128,34 +128,44 @@ function saveIdeas() {
 
 // Universal Login
 function handleUniversalLogin(event) {
-  if (event) event.preventDefault();
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
   
   const inputEl = document.getElementById('passcodeInput');
-  const inputVal = (inputEl.value || '').trim();
+  const inputVal = (inputEl ? inputEl.value : '').trim();
   const errorEl = document.getElementById('loginError');
 
-  // Check 7730 (Team) or 8967 (Admin)
   if (inputVal === PASSCODES.team) {
-    errorEl.style.display = 'none';
+    if (errorEl) errorEl.style.display = 'none';
     unlockPortal('team');
     showToast('Welcome to SEO Ideas Dashboard!', 'success');
+    return false;
   } else if (inputVal === PASSCODES.admin) {
-    errorEl.style.display = 'none';
+    if (errorEl) errorEl.style.display = 'none';
     unlockPortal('admin');
     showToast('Admin Portal Unlocked!', 'success');
+    return false;
   } else {
-    errorEl.innerText = 'Incorrect passcode. Please try again.';
-    errorEl.style.display = 'block';
-    inputEl.select();
+    if (errorEl) {
+      errorEl.innerText = 'Incorrect passcode. Please enter 7730 for Team or 8967 for Admin.';
+      errorEl.style.display = 'block';
+    }
+    if (inputEl) inputEl.select();
+    return false;
   }
+}
+
+// Compatibility alias
+function handleLogin(event) {
+  return handleUniversalLogin(event);
 }
 
 function togglePassVisibility(inputId) {
   const input = document.getElementById(inputId);
-  if (input.type === 'password') {
-    input.type = 'text';
-  } else {
-    input.type = 'password';
+  if (input) {
+    input.type = input.type === 'password' ? 'text' : 'password';
   }
 }
 
@@ -163,20 +173,24 @@ function unlockPortal(role) {
   currentRole = role;
   sessionStorage.setItem(AUTH_KEY, role);
 
-  document.getElementById('authSection').classList.remove('active');
-  document.getElementById('portalNav').style.display = 'flex';
-  document.getElementById('headerRight').style.display = 'flex';
+  const authSec = document.getElementById('authSection');
+  const portalNav = document.getElementById('portalNav');
+  const headerRight = document.getElementById('headerRight');
+
+  if (authSec) authSec.classList.remove('active');
+  if (portalNav) portalNav.style.display = 'flex';
+  if (headerRight) headerRight.style.display = 'flex';
 
   const tabAdmin = document.getElementById('tabAdmin');
   const discreetAdminBtn = document.getElementById('discreetAdminBtn');
 
   if (role === 'admin') {
-    tabAdmin.style.display = 'inline-flex';
-    discreetAdminBtn.style.display = 'none';
+    if (tabAdmin) tabAdmin.style.display = 'inline-flex';
+    if (discreetAdminBtn) discreetAdminBtn.style.display = 'none';
     switchView('admin');
   } else {
-    tabAdmin.style.display = 'none';
-    discreetAdminBtn.style.display = 'inline-flex';
+    if (tabAdmin) tabAdmin.style.display = 'none';
+    if (discreetAdminBtn) discreetAdminBtn.style.display = 'inline-flex';
     switchView('team');
   }
 
@@ -186,39 +200,48 @@ function unlockPortal(role) {
 function logout() {
   currentRole = null;
   sessionStorage.removeItem(AUTH_KEY);
-  document.getElementById('portalNav').style.display = 'none';
-  document.getElementById('headerRight').style.display = 'none';
+  const portalNav = document.getElementById('portalNav');
+  const headerRight = document.getElementById('headerRight');
+  if (portalNav) portalNav.style.display = 'none';
+  if (headerRight) headerRight.style.display = 'none';
   showAuthView();
   showToast('Logged out.');
 }
 
 function showAuthView() {
   hideAllSections();
-  document.getElementById('authSection').classList.add('active');
+  const authSec = document.getElementById('authSection');
+  if (authSec) authSec.classList.add('active');
   const passInput = document.getElementById('passcodeInput');
-  passInput.value = '';
-  document.getElementById('loginError').style.display = 'none';
-  setTimeout(() => passInput.focus(), 100);
+  if (passInput) {
+    passInput.value = '';
+    setTimeout(() => passInput.focus(), 100);
+  }
+  const errorEl = document.getElementById('loginError');
+  if (errorEl) errorEl.style.display = 'none';
 }
 
 function switchView(viewName) {
   hideAllSections();
 
-  document.getElementById('tabTeam').classList.toggle('active', viewName === 'team');
-  document.getElementById('tabFeed').classList.toggle('active', viewName === 'feed');
-  
+  const tabTeam = document.getElementById('tabTeam');
+  const tabFeed = document.getElementById('tabFeed');
   const tabAdmin = document.getElementById('tabAdmin');
-  if (tabAdmin) {
-    tabAdmin.classList.toggle('active', viewName === 'admin');
-  }
+
+  if (tabTeam) tabTeam.classList.toggle('active', viewName === 'team');
+  if (tabFeed) tabFeed.classList.toggle('active', viewName === 'feed');
+  if (tabAdmin) tabAdmin.classList.toggle('active', viewName === 'admin');
 
   if (viewName === 'team') {
-    document.getElementById('teamSection').classList.add('active');
+    const teamSec = document.getElementById('teamSection');
+    if (teamSec) teamSec.classList.add('active');
   } else if (viewName === 'feed') {
-    document.getElementById('feedSection').classList.add('active');
+    const feedSec = document.getElementById('feedSection');
+    if (feedSec) feedSec.classList.add('active');
     renderTeamFeed();
   } else if (viewName === 'admin') {
-    document.getElementById('adminSection').classList.add('active');
+    const adminSec = document.getElementById('adminSection');
+    if (adminSec) adminSec.classList.add('active');
     renderAdminPortal();
   }
 }
@@ -232,20 +255,21 @@ function openAdminGateModal() {
   const modal = document.getElementById('adminModal');
   const input = document.getElementById('adminModalPass');
   const err = document.getElementById('adminModalError');
-  input.value = '';
-  err.style.display = 'none';
-  modal.style.display = 'flex';
-  setTimeout(() => input.focus(), 50);
+  if (input) input.value = '';
+  if (err) err.style.display = 'none';
+  if (modal) modal.style.display = 'flex';
+  if (input) setTimeout(() => input.focus(), 50);
 }
 
 function closeAdminGateModal() {
-  document.getElementById('adminModal').style.display = 'none';
+  const modal = document.getElementById('adminModal');
+  if (modal) modal.style.display = 'none';
 }
 
 function handleAdminModalUnlock(event) {
   if (event) event.preventDefault();
   const input = document.getElementById('adminModalPass');
-  const val = (input.value || '').trim();
+  const val = (input ? input.value : '').trim();
   const err = document.getElementById('adminModalError');
 
   if (val === PASSCODES.admin) {
@@ -253,9 +277,11 @@ function handleAdminModalUnlock(event) {
     unlockPortal('admin');
     showToast('Admin Mode Enabled!', 'success');
   } else {
-    err.innerText = 'Incorrect Admin Password.';
-    err.style.display = 'block';
-    input.select();
+    if (err) {
+      err.innerText = 'Incorrect Admin Password (8967).';
+      err.style.display = 'block';
+    }
+    if (input) input.select();
   }
 }
 
@@ -269,17 +295,29 @@ function handleAdminTabClick() {
 
 // Form & ICE Calculations
 function updateIcePreview() {
-  const imp = parseInt(document.getElementById('impactInput').value, 10) || 1;
-  const conf = parseInt(document.getElementById('confidenceInput').value, 10) || 1;
-  const ease = parseInt(document.getElementById('easeInput').value, 10) || 1;
+  const impEl = document.getElementById('impactInput');
+  const confEl = document.getElementById('confidenceInput');
+  const easeEl = document.getElementById('easeInput');
 
-  document.getElementById('impactValBadge').innerText = imp;
-  document.getElementById('confidenceValBadge').innerText = conf;
-  document.getElementById('easeValBadge').innerText = ease;
+  const imp = impEl ? parseInt(impEl.value, 10) || 1 : 7;
+  const conf = confEl ? parseInt(confEl.value, 10) || 1 : 8;
+  const ease = easeEl ? parseInt(easeEl.value, 10) || 1 : 6;
 
-  document.getElementById('prevImp').innerText = `${imp}/10`;
-  document.getElementById('prevConf').innerText = `${conf}/10`;
-  document.getElementById('prevEase').innerText = `${ease}/10`;
+  const impB = document.getElementById('impactValBadge');
+  const confB = document.getElementById('confidenceValBadge');
+  const easeB = document.getElementById('easeValBadge');
+
+  if (impB) impB.innerText = imp;
+  if (confB) confB.innerText = conf;
+  if (easeB) easeB.innerText = ease;
+
+  const pI = document.getElementById('prevImp');
+  const pC = document.getElementById('prevConf');
+  const pE = document.getElementById('prevEase');
+
+  if (pI) pI.innerText = `${imp}/10`;
+  if (pC) pC.innerText = `${conf}/10`;
+  if (pE) pE.innerText = `${ease}/10`;
 }
 
 function setupLivePreviewListeners() {
@@ -288,21 +326,33 @@ function setupLivePreviewListeners() {
   const catSelect = document.getElementById('ideaCategory');
   const descInput = document.getElementById('ideaDesc');
 
-  titleInput.addEventListener('input', (e) => {
-    document.getElementById('previewTitle').innerText = e.target.value.trim() || 'Your Idea Title';
-  });
+  if (titleInput) {
+    titleInput.addEventListener('input', (e) => {
+      const pT = document.getElementById('previewTitle');
+      if (pT) pT.innerText = e.target.value.trim() || 'Your Idea Title';
+    });
+  }
 
-  authorInput.addEventListener('input', (e) => {
-    document.getElementById('previewAuthor').innerText = e.target.value.trim() ? `By ${e.target.value.trim()}` : 'By Submitter';
-  });
+  if (authorInput) {
+    authorInput.addEventListener('input', (e) => {
+      const pA = document.getElementById('previewAuthor');
+      if (pA) pA.innerText = e.target.value.trim() ? `By ${e.target.value.trim()}` : 'By Submitter';
+    });
+  }
 
-  catSelect.addEventListener('change', (e) => {
-    document.getElementById('previewCategory').innerText = e.target.value;
-  });
+  if (catSelect) {
+    catSelect.addEventListener('change', (e) => {
+      const pC = document.getElementById('previewCategory');
+      if (pC) pC.innerText = e.target.value;
+    });
+  }
 
-  descInput.addEventListener('input', (e) => {
-    document.getElementById('previewDesc').innerText = e.target.value.trim() || 'Description will preview here as you type...';
-  });
+  if (descInput) {
+    descInput.addEventListener('input', (e) => {
+      const pD = document.getElementById('previewDesc');
+      if (pD) pD.innerText = e.target.value.trim() || 'Description will preview here as you type...';
+    });
+  }
 }
 
 function handleIdeaSubmit(event) {
@@ -340,22 +390,26 @@ function handleIdeaSubmit(event) {
   ideas.unshift(newIdea);
   saveIdeas();
 
-  // Reset form
   document.getElementById('ideaForm').reset();
   document.getElementById('impactInput').value = 7;
   document.getElementById('confidenceInput').value = 8;
   document.getElementById('easeInput').value = 6;
   updateIcePreview();
 
-  document.getElementById('previewTitle').innerText = 'Your Idea Title';
-  document.getElementById('previewAuthor').innerText = 'By Submitter';
-  document.getElementById('previewCategory').innerText = 'Content & Keywords';
-  document.getElementById('previewDesc').innerText = 'Description will preview here as you type...';
+  const pT = document.getElementById('previewTitle');
+  const pA = document.getElementById('previewAuthor');
+  const pC = document.getElementById('previewCategory');
+  const pD = document.getElementById('previewDesc');
+
+  if (pT) pT.innerText = 'Your Idea Title';
+  if (pA) pA.innerText = 'By Submitter';
+  if (pC) pC.innerText = 'Content & Keywords';
+  if (pD) pD.innerText = 'Description will preview here as you type...';
 
   showToast('🎉 Idea submitted successfully!', 'success');
 }
 
-// ICE Score: (Impact + Confidence + Ease) / 3
+// Calculate Total ICE Score: (I + C + E) / 3
 function calculateIceScore(idea) {
   const sum = (Number(idea.impact) || 0) + (Number(idea.confidence) || 0) + (Number(idea.ease) || 0);
   return (sum / 3).toFixed(1);
@@ -363,7 +417,8 @@ function calculateIceScore(idea) {
 
 // Rendering
 function renderAllViews() {
-  document.getElementById('teamTotalCount').innerText = ideas.length;
+  const teamTotal = document.getElementById('teamTotalCount');
+  if (teamTotal) teamTotal.innerText = ideas.length;
   renderTeamFeed();
   if (currentRole === 'admin') {
     renderAdminPortal();
@@ -428,33 +483,49 @@ function updateAdminKPIs() {
     avgIce = (totalScore / total).toFixed(1);
   }
 
-  document.getElementById('kpiTotal').innerText = total;
-  document.getElementById('kpiSelected').innerText = selectedCount;
-  document.getElementById('kpiDiscussion').innerText = discussionCount;
-  document.getElementById('kpiAvgIce').innerText = avgIce;
+  const kTotal = document.getElementById('kpiTotal');
+  const kSelected = document.getElementById('kpiSelected');
+  const kDiscussion = document.getElementById('kpiDiscussion');
+  const kAvgIce = document.getElementById('kpiAvgIce');
 
-  document.getElementById('countAll').innerText = total;
-  document.getElementById('countGoAhead').innerText = ideas.filter(i => i.status === 'Go ahead').length;
-  document.getElementById('countSelected').innerText = ideas.filter(i => i.status === 'Selected').length;
-  document.getElementById('countRoute').innerText = ideas.filter(i => i.status === 'Route for discussion').length;
-  document.getElementById('countDiscussion').innerText = ideas.filter(i => i.status === 'Discussion').length;
-  document.getElementById('countRejected').innerText = ideas.filter(i => i.status === 'Rejected').length;
+  if (kTotal) kTotal.innerText = total;
+  if (kSelected) kSelected.innerText = selectedCount;
+  if (kDiscussion) kDiscussion.innerText = discussionCount;
+  if (kAvgIce) kAvgIce.innerText = avgIce;
+
+  const cAll = document.getElementById('countAll');
+  const cGo = document.getElementById('countGoAhead');
+  const cSel = document.getElementById('countSelected');
+  const cRoute = document.getElementById('countRoute');
+  const cDisc = document.getElementById('countDiscussion');
+  const cRej = document.getElementById('countRejected');
+
+  if (cAll) cAll.innerText = total;
+  if (cGo) cGo.innerText = ideas.filter(i => i.status === 'Go ahead').length;
+  if (cSel) cSel.innerText = ideas.filter(i => i.status === 'Selected').length;
+  if (cRoute) cRoute.innerText = ideas.filter(i => i.status === 'Route for discussion').length;
+  if (cDisc) cDisc.innerText = ideas.filter(i => i.status === 'Discussion').length;
+  if (cRej) cRej.innerText = ideas.filter(i => i.status === 'Rejected').length;
 }
 
 function setQuickStatus(status, buttonEl) {
   currentAdminQuickFilter = status;
-  document.getElementById('adminStatusFilter').value = status;
+  const statFilter = document.getElementById('adminStatusFilter');
+  if (statFilter) statFilter.value = status;
   
   document.querySelectorAll('.stage-pill').forEach(btn => btn.classList.remove('active'));
-  buttonEl.classList.add('active');
+  if (buttonEl) buttonEl.classList.add('active');
   
   filterAdminIdeas();
 }
 
 function filterAdminIdeas() {
-  const search = (document.getElementById('adminSearch').value || '').toLowerCase().trim();
-  const statusFilter = document.getElementById('adminStatusFilter').value;
-  const sort = document.getElementById('adminSort').value;
+  const searchInput = document.getElementById('adminSearch');
+  const search = (searchInput ? searchInput.value : '').toLowerCase().trim();
+  const statusFilterEl = document.getElementById('adminStatusFilter');
+  const statusFilter = statusFilterEl ? statusFilterEl.value : 'All';
+  const sortEl = document.getElementById('adminSort');
+  const sort = sortEl ? sortEl.value : 'ice-desc';
 
   let filtered = [...ideas];
 
@@ -500,14 +571,15 @@ function filterAdminIdeas() {
 function renderAdminTableRows(filteredIdeas) {
   const tbody = document.getElementById('adminTableBody');
   const emptyState = document.getElementById('noResultsState');
+  if (!tbody) return;
 
   if (filteredIdeas.length === 0) {
     tbody.innerHTML = '';
-    emptyState.style.display = 'block';
+    if (emptyState) emptyState.style.display = 'block';
     return;
   }
 
-  emptyState.style.display = 'none';
+  if (emptyState) emptyState.style.display = 'none';
 
   tbody.innerHTML = filteredIdeas.map(idea => {
     const totalScore = calculateIceScore(idea);
@@ -605,6 +677,7 @@ function openDetailModal(id) {
 
   const modal = document.getElementById('detailModal');
   const content = document.getElementById('detailModalContent');
+  if (!modal || !content) return;
 
   content.innerHTML = `
     <div class="modal-header">
@@ -672,14 +745,17 @@ function openDetailModal(id) {
 }
 
 function closeDetailModal() {
-  document.getElementById('detailModal').style.display = 'none';
+  const modal = document.getElementById('detailModal');
+  if (modal) modal.style.display = 'none';
 }
 
 function saveDetailModalChanges(id) {
   const idea = ideas.find(i => i.id === id);
   if (idea) {
-    idea.status = document.getElementById('modalStatus').value;
-    idea.adminNotes = document.getElementById('modalAdminNotes').value.trim();
+    const stat = document.getElementById('modalStatus');
+    const notes = document.getElementById('modalAdminNotes');
+    if (stat) idea.status = stat.value;
+    if (notes) idea.adminNotes = notes.value.trim();
     saveIdeas();
     closeDetailModal();
     showToast('Saved!', 'success');
@@ -756,6 +832,7 @@ function escapeHtml(string) {
 
 function showToast(message, type = 'info') {
   const container = document.getElementById('toastContainer');
+  if (!container) return;
   const toast = document.createElement('div');
   toast.className = `toast ${type === 'success' ? 'toast-success' : ''}`;
   toast.innerHTML = `<span>${message}</span>`;
