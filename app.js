@@ -13,8 +13,7 @@ const PASSCODES = {
 };
 
 // Google Apps Script Web App Deployment URL
-// After deploying google-apps-script.js in Google Sheets (Extensions > Apps Script), paste URL here or configure in Admin:
-let GOOGLE_SHEET_WEBAPP_URL = localStorage.getItem('seo_hub_webapp_url') || '';
+const GOOGLE_SHEET_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbya3Ut7mQggtzmkGHDWbkgffyxuwLoKIyPZ-WbWCHH4YsckueBYTWzRpDKEaQYsA9jdBQ/exec';
 
 const STORAGE_KEY = 'seo_hub_ideas_v3';
 const AUTH_KEY = 'seo_hub_auth_role';
